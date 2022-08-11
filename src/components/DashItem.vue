@@ -31,7 +31,7 @@ export default {
   justify-content: space-between;
   margin: 5px;
   padding: 0 8px;
-  width: 300px;
+  width: 320px;
 }
 
 img {

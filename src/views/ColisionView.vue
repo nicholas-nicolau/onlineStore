@@ -4,22 +4,10 @@
       <side-bar></side-bar>
     </div>
     <section class="content">
-      <top-bar caption-name="Dashboard"></top-bar>
-      <section class="dashItens">
-        <dash-item
-          caption-item="Produtos cadastrados"
-          :amount-item="productsAmount"
-          name-item="boxIcon"
-        ></dash-item>
-        <dash-item
-          caption-item="Categorias cadastradas"
-          :amount-item="categoriesAmount"
-          name-item="categoryIcon"
-        ></dash-item>
-      </section>
+      <top-bar caption-name="Categorias"></top-bar>
       <section class="table">
         <products-table
-          caption-text="Listagem de Produtos em Destaque"
+          :caption-text="`Listagem de Produtos com categoria '${categoryName}'`"
           input-text-path-to-filter="Nome"
           input-text-method="contains"
           request-type="products"
@@ -28,6 +16,8 @@
           table-headers-paths="attributes.image-url,attributes.name,attributes.details,relationships.category.data.name,relationships.measure.data.name,attributes.stock,attributes.value,id"
           filter-by-highlight="true"
           has-image="true"
+          :special-filter="categoryName"
+          special-filter-path="relationships.category.data.name"
         ></products-table>
       </section>
     </section>
@@ -36,16 +26,15 @@
 
 <script>
 import TopBar from "../components/TopBar.vue";
-import DashItem from "../components/DashItem.vue";
 import SideBar from "../components/SideBar.vue";
 import ProductsTable from "../components/ProductsTable.vue";
 import ApiResources from "@/services/ApiResources";
 import FilterJson from "@/services/FilterJson";
 
 export default {
+  props: ["categoryName"],
   components: {
     TopBar,
-    DashItem,
     SideBar,
     ProductsTable,
   },

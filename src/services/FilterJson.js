@@ -13,8 +13,11 @@ export default class FilterJson {
 
   //get a value from json using a dynamic path
   static getValue(jsonObject, pathToKey) {
+    if (typeof pathToKey == "string") {
+      pathToKey = pathToKey.split(".");
+    }
     pathToKey.forEach((element) => {
-      jsonObject = jsonObject[element];
+      jsonObject = jsonObject[`${element}`];
     });
     return jsonObject;
   }
