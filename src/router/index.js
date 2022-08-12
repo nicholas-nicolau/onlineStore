@@ -66,7 +66,7 @@ const routes = [
     props: true,
   },
   {
-    path: "/categories/colision/:categoryName",
+    path: "/:typeOfColision/colision/:colisionName",
     name: "colisionCategory",
     component: ColisionView,
     props: true,

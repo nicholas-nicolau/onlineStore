@@ -11,7 +11,7 @@
       <tr>
         <th v-if="hasImage == 'true'">Imagem</th>
         <th v-for="header in TableHeaders" :key="header">{{ header }}</th>
-        <th>Ação</th>
+        <th v-if="colisionType == undefined">Ação</th>
       </tr>
       <tr
         v-for="product in filteredProducts"
@@ -23,16 +23,48 @@
           <img v-else src="../assets/defaultImage.png" />
         </td>
         <td v-for="typeOfHeader in TableHeaders" :key="typeOfHeader">
-          {{ product[typeOfHeader] }}
+          <select
+            v-if="typeOfHeader == optionHeaderName && colisionType != undefined"
+            @change="selectHdl"
+            :id="product.ID"
+          >
+            <option selected disabled hidden></option>
+            <option v-for="option in allOtherOptions" :key="option">
+              {{ option.name }}
+            </option>
+          </select>
+          <p v-else>
+            {{ product[typeOfHeader] }}
+          </p>
         </td>
         <td :id="product.ID">
-          <button :id="product.ID" @click="clickHandler">Editar</button>
+          <button
+            v-if="colisionType == undefined"
+            :id="product.ID"
+            @click="clickHandler"
+          >
+            Editar
+          </button>
         </td>
       </tr>
       <td colspan="7" v-if="filteredProducts.length == 0">
-        <p class="nothingFound">Nothing were found :/</p>
+        <p class="nothingFound">Nada foi encontrado :/</p>
       </td>
     </table>
+    <div class="button">
+      <button
+        v-if="colisionType != undefined"
+        style="
+          background-color: green;
+          width: 250px;
+          height: 40px;
+          font-size: 22px;
+          margin-top: 20px;
+        "
+      >
+        Confirmar
+      </button>
+    </div>
   </div>
 </template>
 
@@ -55,6 +87,8 @@ export default {
     "specialFilter",
     "specialFilterPath",
     "specialFilterMethod",
+    "colisionType",
+    "colisionName",
   ],
   data() {
     return {
@@ -68,9 +102,17 @@ export default {
       SpecialFilter: [],
       SpecialFilterPath: [],
       SpecialFilterMethod: [],
+      allOtherOptions: [],
+      optionHeaderName: "",
+      optionsValidation: [],
+      validationObject: {},
     };
   },
   methods: {
+    selectHdl(ev) {
+      this.validationObject[ev.target.attributes.id.value] = ev.target.value;
+      console.log(this.validationObject);
+    },
     clickHandler(ev) {
       this.$router.push(
         `/${this.requestType}/${ev.target.attributes.id.value}/edit`
@@ -89,6 +131,13 @@ export default {
         this.filteredProducts = this.productsArray;
       }
     },
+    nameRelationship(name) {
+      let names = {
+        categories: "Categoria",
+        measures: "Un",
+      };
+      return names[name];
+    },
   },
   async beforeMount() {
     //trasnforming parameters data
@@ -101,14 +150,13 @@ export default {
     );
     //filtering by the special filter
     if (this.specialFilter != undefined) {
+      //settinda data for special filter
       this.SpecialFilter = this.specialFilter.split(",");
       this.SpecialFilterPath = this.specialFilterPath.split(",");
       this.SpecialFilterMethod = this.specialFilterMethod.split(",");
+      //filtering
       this.SpecialFilter.forEach((specialFilter, index) => {
         this.products = this.products.filter((product) => {
-          console.log(specialFilter);
-          console.log(this.SpecialFilterPath[index]);
-          console.log(product);
           return FilterJson.filter(product, {
             path: this.SpecialFilterPath[index],
             valueToFilter: specialFilter,
@@ -138,6 +186,17 @@ export default {
         return false;
       return true;
     });
+    //setting colision options
+    if (this.colisionType != undefined) {
+      this.optionHeaderName = this.nameRelationship(this.colisionType);
+      this.allOtherOptions = FilterJson.getValue(
+        await ApiResources.getRequest(this.colisionType),
+        "data"
+      );
+      this.allOtherOptions = this.allOtherOptions.filter((element) => {
+        return element.name != this.colisionName;
+      });
+    }
   },
 };
 </script>
@@ -222,5 +281,14 @@ button {
 
 button:hover {
   cursor: pointer;
+}
+
+select {
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-family: sans-serif;
+  background-color: rgba(0, 0, 0, 0);
+  outline: none;
 }
 </style>

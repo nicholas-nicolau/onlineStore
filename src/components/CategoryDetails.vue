@@ -33,6 +33,7 @@
   <colision-interface
     v-if="this.colisions.length > 0"
     type-of-colision="category"
+    :name-of-colision="apiResponse ? apiResponse.name : ''"
     :amount-of-colision="this.colisions.length"
     :colision-array="this.colisions"
     @canceled="canceledClick"

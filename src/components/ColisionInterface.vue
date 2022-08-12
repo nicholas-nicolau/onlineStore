@@ -57,7 +57,7 @@
         </div>
         <div class="option" v-if="amountOfColision > 1">
           <p>Decidir manualmente a cada produto</p>
-          <button>Confirmar</button>
+          <button @click="goToTable">Confirmar</button>
         </div>
       </div>
       <button
@@ -74,7 +74,12 @@
 import FilterJson from "@/services/FilterJson";
 import ApiResources from "@/services/ApiResources";
 export default {
-  props: ["typeOfColision", "amountOfColision", "colisionArray"],
+  props: [
+    "typeOfColision",
+    "amountOfColision",
+    "colisionArray",
+    "nameOfColision",
+  ],
   data() {
     return {
       allOthersCategories: [],
@@ -86,6 +91,13 @@ export default {
   methods: {
     cancel() {
       this.$emit("canceled", true);
+    },
+    goToTable() {
+      this.$router.push(
+        `/${this.nameRelationship(this.typeOfColision + "url")}/colision/${
+          this.nameOfColision
+        }`
+      );
     },
     async deleteAllProducts() {
       let responses = this.colisionArray.map(async (element) => {
@@ -147,6 +159,8 @@ export default {
       let relation = {
         category: "categoria",
         measure: "unidade de medida",
+        categoryurl: "categories",
+        measureurl: "measures",
       };
       return relation[value];
     },
