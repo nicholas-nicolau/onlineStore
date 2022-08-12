@@ -3,9 +3,12 @@ export default class FilterJson {
     jsonObject = this.getValue(jsonObject, filterParameters.path);
     switch (filterParameters.method) {
       case "equals":
-        return filterParameters.valueToFilter == jsonObject;
+        return (
+          filterParameters.valueToFilter.toString() == jsonObject.toString()
+        );
       case "contains":
         return jsonObject
+          .toString()
           .toLowerCase()
           .includes(filterParameters.valueToFilter.toLowerCase());
     }

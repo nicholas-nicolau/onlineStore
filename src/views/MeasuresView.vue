@@ -14,7 +14,6 @@
           request-base-path="data"
           table-headers="ID,Nome"
           table-headers-paths="id,name"
-          filter-by-highlight="false"
           has-image="false"
         ></products-table>
       </section>

@@ -54,18 +54,20 @@ export default {
     "basePathEdit",
     "specialFilter",
     "specialFilterPath",
+    "specialFilterMethod",
   ],
   data() {
     return {
       filteredProducts: "",
       products: "",
-      InputTextPathToFilter: [],
-      RequestBasePath: [],
       TableHeaders: [],
       TableHeadersPaths: [],
       productsString: "",
       productsArray: [],
       id: "",
+      SpecialFilter: [],
+      SpecialFilterPath: [],
+      SpecialFilterMethod: [],
     };
   },
   methods: {
@@ -78,7 +80,7 @@ export default {
       if (event.target.value != "") {
         this.filteredProducts = this.productsArray.filter((element) => {
           return FilterJson.filter(element, {
-            path: this.InputTextPathToFilter,
+            path: this.inputTextPathToFilter,
             valueToFilter: event.target.value,
             method: this.inputTextMethod,
           });
@@ -90,36 +92,33 @@ export default {
   },
   async beforeMount() {
     //trasnforming parameters data
-    this.InputTextPathToFilter = this.inputTextPathToFilter.split(",");
-    this.RequestBasePath = this.requestBasePath.split(",");
     this.TableHeaders = this.tableHeaders.split(",");
     this.TableHeadersPaths = this.tableHeadersPaths.split(",");
     //getting array from response
     this.products = FilterJson.getValue(
       await ApiResources.getRequest(this.requestType),
-      this.RequestBasePath
+      this.requestBasePath
     );
-    //filtering array and transforming structure according to TableHeadersPaths provided
-    if (this.filterByHighlight == "true") {
-      this.products = this.products.filter((element) => {
-        return FilterJson.filter(element, {
-          path: ["attributes", "highlight"],
-          valueToFilter: true,
-          method: "equals",
-        });
-      });
-    }
     //filtering by the special filter
     if (this.specialFilter != undefined) {
-      this.products = this.products.filter((element) => {
-        return FilterJson.filter(element, {
-          path: this.specialFilterPath,
-          valueToFilter: this.specialFilter,
-          method: "contains",
+      this.SpecialFilter = this.specialFilter.split(",");
+      this.SpecialFilterPath = this.specialFilterPath.split(",");
+      this.SpecialFilterMethod = this.specialFilterMethod.split(",");
+      this.SpecialFilter.forEach((specialFilter, index) => {
+        this.products = this.products.filter((product) => {
+          console.log(specialFilter);
+          console.log(this.SpecialFilterPath[index]);
+          console.log(product);
+          return FilterJson.filter(product, {
+            path: this.SpecialFilterPath[index],
+            valueToFilter: specialFilter,
+            method: this.SpecialFilterMethod[index],
+          });
         });
       });
     }
-    //adjusting product objects inside array to display, order to evaluate: headers of the table
+    //adjusting product objects inside array to display
+    //Order to evaluate: headers of the table
     this.products.forEach((product) => {
       this.objectsString = new Object();
       this.TableHeaders.forEach((headerName, headerIndex) => {

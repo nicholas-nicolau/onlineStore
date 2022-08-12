@@ -11,13 +11,13 @@
           input-text-path-to-filter="Nome"
           input-text-method="contains"
           request-type="products"
-          request-base-path="data,data"
+          request-base-path="data.data"
           table-headers="Imagem,Nome,Detalhes,Categoria,Un,Estoque,Valor,ID"
           table-headers-paths="attributes.image-url,attributes.name,attributes.details,relationships.category.data.name,relationships.measure.data.name,attributes.stock,attributes.value,id"
-          filter-by-highlight="true"
           has-image="true"
           :special-filter="categoryName"
           special-filter-path="relationships.category.data.name"
+          special-filter-method="contains"
         ></products-table>
       </section>
     </section>

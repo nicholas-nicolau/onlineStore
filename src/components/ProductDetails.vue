@@ -169,7 +169,6 @@ export default {
       }
     },
     async createObject() {
-      console.log("entrou para criar");
       let responseStatus = await ApiResources.postRequest(
         `products`,
         "product",

@@ -35,6 +35,7 @@
     type-of-colision="category"
     :amount-of-colision="this.colisions.length"
     :colision-array="this.colisions"
+    @canceled="canceledClick"
   ></colision-interface>
 </template>
 
@@ -55,6 +56,9 @@ export default {
     ColisionInterface,
   },
   methods: {
+    canceledClick() {
+      this.colisions = [];
+    },
     clickHdl() {
       this.$route.params.categoryId != undefined
         ? this.updateObject()
@@ -68,7 +72,6 @@ export default {
         "categories",
         this.$route.params.categoryId
       );
-      console.log(this.colisions);
       if (this.colisions.length == 0) this.deleteObject();
     },
     async deleteObject() {
