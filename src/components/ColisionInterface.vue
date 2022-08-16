@@ -1,6 +1,6 @@
 <template>
-  <div class="container-colision">
-    <div class="alert">
+  <div class="container-colision" @click="cancel">
+    <div class="alert" @click.stop>
       <h3>
         {{
           `Há ${amountOfColision} ${
@@ -16,7 +16,9 @@
             {{
               `Excluir ${
                 amountOfColision > 1
-                  ? "todos os produtos com a categoria '" +
+                  ? `todos os produtos com a ${this.nameRelationship(
+                      this.typeOfColision
+                    )} '` +
                     getNameFromObject(
                       this.colisionArray[0],
                       `relationships.${typeOfColision}.data.name`
@@ -33,10 +35,10 @@
           </p>
           <button @click="deleteAllProducts()">Confirmar</button>
         </div>
-        <div class="secondOption option" v-if="allOthersCategories.length > 0">
+        <div class="secondOption option" v-if="allOthersOptions.length > 0">
           <p>
             {{
-              `Substituir a categoria ${
+              `Substituir a ${this.nameRelationship(this.typeOfColision)} ${
                 amountOfColision > 1
                   ? "dos produtos para: "
                   : "do produto '" +
@@ -47,15 +49,15 @@
                     "' para: "
               }`
             }}
-            <select v-model="selectCategoryName">
-              <option v-for="category in allOthersCategories" :key="category">
-                {{ category.name }}
+            <select v-model="selectOptionName">
+              <option v-for="option in allOthersOptions" :key="option">
+                {{ option.name }}
               </option>
             </select>
           </p>
           <button @click="changeAllProducts">Confirmar</button>
         </div>
-        <div class="option" v-if="amountOfColision > 1">
+        <div class="option" v-if="amountOfColision > 1 && amountOfOptions > 2">
           <p>Decidir manualmente a cada produto</p>
           <button @click="goToTable">Confirmar</button>
         </div>
@@ -82,10 +84,11 @@ export default {
   ],
   data() {
     return {
-      allOthersCategories: [],
+      allOthersOptions: [],
       product: {},
-      selectCategoryName: "",
-      originalCategoryId: "",
+      selectOptionName: "",
+      originalOptionId: "",
+      amountOfOptions: "",
     };
   },
   methods: {
@@ -104,32 +107,48 @@ export default {
         await ApiResources.deleteRequest(`products/${element.id}`);
       });
       await Promise.all(responses);
-      await ApiResources.deleteRequest(`categories/${this.originalCategoryId}`);
+      await ApiResources.deleteRequest(
+        `${this.nameRelationship(this.typeOfColision + "url")}/${
+          this.originalOptionId
+        }`
+      );
       window.alert(
         `${
           this.colisionArray.length > 1
-            ? "Produtos e categoria excluídos com sucesso!"
-            : "Produto e categoria excluídos com sucesso!"
+            ? `Produtos e ${this.nameRelationship(
+                this.typeOfColision
+              )} excluídos com sucesso!`
+            : `Produto e ${this.nameRelationship(
+                this.typeOfColision
+              )} excluídos com sucesso!`
         }`
       );
-      this.$router.push("/categories");
+      this.$router.push(
+        `/${this.nameRelationship(this.typeOfColision + "url")}`
+      );
     },
-    nameCategoryToIdCategory() {
-      if (this.selectCategoryName.length == 0)
-        window.alert("por favor, selecione ao menos uma categoria");
-      if (this.selectCategoryName.length > 0) {
-        return this.allOthersCategories.filter(
-          (category) => category.name == this.selectCategoryName
+    nameOptionToIdOption() {
+      if (this.selectOptionName.length == 0)
+        window.alert("por favor, selecione ao menos uma opção");
+      if (this.selectOptionName.length > 0) {
+        return this.allOthersOptions.filter(
+          (option) => option.name == this.selectOptionName
         )[0].id;
       }
     },
     async changeAllProducts() {
-      let newCategoryId = this.nameCategoryToIdCategory;
+      let newOptionId = this.nameOptionToIdOption;
       let responses = this.colisionArray.map(async (element) => {
         this.product = {
           name: element.attributes.name,
-          category_id: newCategoryId(),
-          measure_id: element.attributes["measure-id"],
+          category_id:
+            this.typeOfColision == "category"
+              ? newOptionId()
+              : element.attributes["category-id"],
+          measure_id:
+            this.typeOfColision == "measure"
+              ? newOptionId()
+              : element.attributes["measure-id"],
           stock: element.attributes.stock,
           value: element.attributes.value,
           highlight: element.attributes.highlight,
@@ -142,15 +161,25 @@ export default {
         );
       });
       await Promise.all(responses);
-      await ApiResources.deleteRequest(`categories/${this.originalCategoryId}`);
+      await ApiResources.deleteRequest(
+        `${this.nameRelationship(this.typeOfColision + "url")}/${
+          this.originalOptionId
+        }`
+      );
       window.alert(
         `${
           this.colisionArray.length > 1
-            ? "Produtos atualizados e categoria excluída com sucesso!"
-            : "Produto atualizado e categoria excluída com sucesso!"
+            ? `Produtos atualizados e ${this.nameRelationship(
+                this.typeOfColision
+              )} excluída com sucesso!`
+            : `Produto atualizado e ${this.nameRelationship(
+                this.typeOfColision
+              )} excluída com sucesso!`
         }`
       );
-      this.$router.push("/categories");
+      this.$router.push(
+        `/${this.nameRelationship(this.typeOfColision + "url")}`
+      );
     },
     getNameFromObject(object, path) {
       return FilterJson.getValue(object, path);
@@ -166,17 +195,25 @@ export default {
     },
   },
   async beforeCreate() {
-    let currentCategoryName =
-      this.colisionArray[0].relationships.category.data.name;
+    let relation = {
+      category: "categoria",
+      measure: "unidade de medida",
+      categoryurl: "categories",
+      measureurl: "measures",
+    };
+    let requisitionName = relation[this.typeOfColision + "url"];
+    let currentOptionName =
+      this.colisionArray[0].relationships[this.typeOfColision].data.name;
     let apiResponse = await FilterJson.getValue(
-      await ApiResources.getRequest("categories"),
+      await ApiResources.getRequest(requisitionName),
       "data"
     );
-    this.allOthersCategories = apiResponse = apiResponse.filter((element) => {
-      if (element.name == currentCategoryName) {
-        this.originalCategoryId = element.id;
+    this.amountOfOptions = apiResponse.length;
+    this.allOthersOptions = apiResponse.filter((element) => {
+      if (element.name == currentOptionName) {
+        this.originalOptionId = element.id;
       }
-      return element.name != currentCategoryName;
+      return element.name != currentOptionName;
     });
   },
 };

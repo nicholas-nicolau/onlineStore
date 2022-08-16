@@ -18,7 +18,7 @@
     </form>
     <div class="buttons">
       <button style="background-color: green" @click="clickHdl">Salvar</button>
-      <button v-if="this.$route.params.measureId" @click="deleteObject">
+      <button v-if="this.$route.params.measureId" @click="checkForColision">
         Excluir
       </button>
       <button v-else style="background-color: orange" @click="returnToMeasures">
@@ -26,11 +26,21 @@
       </button>
     </div>
   </div>
+  <colision-interface
+    v-if="this.colisions.length > 0"
+    type-of-colision="measure"
+    :name-of-colision="apiResponse ? apiResponse.name : ''"
+    :amount-of-colision="this.colisions.length"
+    :colision-array="this.colisions"
+    @canceled="canceledClick"
+  ></colision-interface>
 </template>
 
 <script>
 import ApiResources from "@/services/ApiResources";
 import FilterJson from "@/services/FilterJson";
+import ColisionInterface from "../components/ColisionInterface.vue";
+import Utils from "../services/Utils.js";
 
 export default {
   data() {
@@ -38,9 +48,23 @@ export default {
       apiResponse: {},
       changeStatus: false,
       updatedName: "",
+      colisions: [],
     };
   },
+  components: {
+    ColisionInterface,
+  },
   methods: {
+    canceledClick() {
+      this.colisions = [];
+    },
+    async checkForColision() {
+      this.colisions = await Utils.checkingForColisions(
+        "measures",
+        this.$route.params.measureId
+      );
+      if (this.colisions.length == 0) this.deleteObject();
+    },
     clickHdl() {
       this.$route.params.measureId != undefined
         ? this.updateObject()

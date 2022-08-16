@@ -25,7 +25,7 @@
         <td v-for="typeOfHeader in TableHeaders" :key="typeOfHeader">
           <select
             v-if="typeOfHeader == optionHeaderName && colisionType != undefined"
-            @change="selectHdl"
+            @change="selectHandler"
             :id="product.ID"
           >
             <option selected disabled hidden></option>
@@ -53,6 +53,7 @@
     </table>
     <div class="button">
       <button
+        @click="confirmColisionChanges"
         v-if="colisionType != undefined"
         style="
           background-color: green;
@@ -71,6 +72,7 @@
 <script>
 import ApiResources from "../services/ApiResources.js";
 import FilterJson from "@/services/FilterJson";
+import Utils from "../services/Utils.js";
 
 export default {
   props: [
@@ -106,12 +108,28 @@ export default {
       optionHeaderName: "",
       optionsValidation: [],
       validationObject: {},
+      colisionOriginalOptionId: "",
     };
   },
   methods: {
-    selectHdl(ev) {
-      this.validationObject[ev.target.attributes.id.value] = ev.target.value;
-      console.log(this.validationObject);
+    async confirmColisionChanges() {
+      if (Object.keys(this.validationObject).length != this.products.length) {
+        window.alert("Por favor, altere todos os produtos na lista!!");
+        return;
+      }
+      await Utils.updatingProducts(
+        this.validationObject,
+        this.colisionType,
+        this.colisionOriginalOptionId
+      );
+      this.$router.push(`/${this.$route.params.typeOfColision}`);
+    },
+    selectHandler(ev) {
+      let currentOption = this.allOtherOptions.filter((option) => {
+        return ev.target.value == option.name;
+      });
+      this.validationObject[ev.target.attributes.id.value] =
+        currentOption[0].id;
     },
     clickHandler(ev) {
       this.$router.push(
@@ -157,6 +175,7 @@ export default {
       //filtering
       this.SpecialFilter.forEach((specialFilter, index) => {
         this.products = this.products.filter((product) => {
+          console.log(product);
           return FilterJson.filter(product, {
             path: this.SpecialFilterPath[index],
             valueToFilter: specialFilter,
@@ -194,6 +213,9 @@ export default {
         "data"
       );
       this.allOtherOptions = this.allOtherOptions.filter((element) => {
+        element.name == this.colisionName
+          ? (this.colisionOriginalOptionId = element.id)
+          : "";
         return element.name != this.colisionName;
       });
     }

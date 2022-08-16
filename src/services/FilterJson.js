@@ -3,9 +3,15 @@ export default class FilterJson {
     jsonObject = this.getValue(jsonObject, filterParameters.path);
     switch (filterParameters.method) {
       case "equals":
-        return (
-          filterParameters.valueToFilter.toString() == jsonObject.toString()
-        );
+        try {
+          filterParameters.valueToFilter.toString();
+          jsonObject.toString();
+          return (
+            filterParameters.valueToFilter.toString() == jsonObject.toString()
+          );
+        } catch (e) {
+          return false;
+        }
       case "contains":
         return jsonObject
           .toString()

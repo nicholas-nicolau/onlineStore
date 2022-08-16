@@ -127,12 +127,4 @@ export default {
 .content {
   width: 100%;
 }
-
-.dashItens {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: left;
-}
 </style>
